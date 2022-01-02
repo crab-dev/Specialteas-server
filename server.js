@@ -1,7 +1,39 @@
 const express = require("express")
-const app = express()
-const port = process.env.PORT || 5000
 const cors = require("cors")
+const pool = require("./db")
+const app = express()
+const port = 5000
+
+app.use(cors())
+
+app.use(function (req, res, next) {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Credentials', true)
+  next()
+})
+
+app.get("/", async (req, res) => {
+  let conn 
+  try {
+    conn = await pool.getConnection()
+    let query = "SELECT * FROM milkTeas"
+    let rows = await conn.query(query)
+    res.send(rows)
+  } catch (err) {
+    throw err
+  } finally {
+    if (conn) return conn.release()
+  }
+})
+
+// app.get("/", (req, res) => {
+//   res.send(SPECIAL_TEAS)
+//   console.log("Booped")
+// })
+
+app.listen(port, () => console.log(`Listening on port ${port}`))
 
 const SPECIAL_TEAS = [
   {
@@ -50,23 +82,3 @@ const SPECIAL_TEAS = [
     tea: "Last Tea"
   },
 ]
-
-app.use(cors())
-
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
-  res.setHeader('Access-Control-Allow-Credentials', true)
-  next()
-})
-
-
-app.listen(port, () => console.log(`Listening on port ${port}`))
-
-app.get("/", (req, res) => {
-  res.send(SPECIAL_TEAS)
-  console.log("Booped")
-})
-
-
